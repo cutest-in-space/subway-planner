@@ -12,6 +12,18 @@ import heapq  # 添加heapq导入
 import random  # 为数据生成和模拟退火添加
 import math    # 为模拟退火算法添加
 
+# 设置中文字体
+plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']  # 添加备选字体
+plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
+
+# 设置页面配置
+st.set_page_config(
+    page_title="城市地铁路线规划系统",
+    page_icon="🚇",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 # 添加模拟退火算法代码
 # 全局变量：地图尺寸、移动成本、建站成本、起终点坐标及转向代价
 sa_rows = sa_cols = 0
@@ -996,7 +1008,7 @@ st.markdown("---")
 st.markdown(
     """
     <div style="text-align: center; color: #6B7280; padding: 10px 0;">
-        城市地铁路线规划系统
+        城市地铁路线规划系统 by陆冠宇小组
     </div>
     """, 
     unsafe_allow_html=True
