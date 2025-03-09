@@ -11,6 +11,10 @@ import sys  # 确保导入sys
 import heapq  # 添加heapq导入
 import random  # 为数据生成和模拟退火添加
 import math    # 为模拟退火算法添加
+import matplotlib.font_manager as fm
+import os
+import requests
+from pathlib import Path
 
 # 设置pandas显示选项
 pd.set_option('display.unicode.ambiguous_as_wide', True)
@@ -18,12 +22,45 @@ pd.set_option('display.unicode.east_asian_width', True)
 pd.set_option('display.width', 180)
 
 # 配置matplotlib中文显示
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Noto Sans CJK JP', 'Microsoft YaHei', 'DejaVu Sans', 'Arial Unicode MS']
-plt.rcParams['axes.unicode_minus'] = False
-plt.rcParams['font.family'] = 'sans-serif'
-mpl.rcParams['font.size'] = 12
-mpl.rcParams['axes.titlesize'] = 14
-mpl.rcParams['axes.labelsize'] = 12
+def setup_chinese_font():
+    # 创建字体目录
+    font_dir = Path('.streamlit/fonts')
+    font_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 调试信息
+    st.write("当前可用字体:")
+    st.write([f.name for f in fm.fontManager.ttflist])
+    
+    # 下载思源黑体
+    font_path = font_dir / 'SourceHanSansSC-Regular.otf'
+    if not font_path.exists():
+        font_url = "https://github.com/adobe-fonts/source-han-sans/raw/release/OTF/SimplifiedChinese/SourceHanSansSC-Regular.otf"
+        try:
+            response = requests.get(font_url)
+            response.raise_for_status()
+            font_path.write_bytes(response.content)
+        except Exception as e:
+            st.error(f"下载字体失败: {str(e)}")
+            # 使用系统默认字体作为后备
+            return
+
+    # 添加字体文件到matplotlib
+    font_path_str = str(font_path)
+    if os.path.exists(font_path_str):
+        fm.fontManager.addfont(font_path_str)
+        plt.rcParams['font.sans-serif'] = ['Source Han Sans SC', 'DejaVu Sans', 'Arial Unicode MS']
+    else:
+        # 使用系统默认字体作为后备
+        plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS']
+
+    plt.rcParams['axes.unicode_minus'] = False
+    plt.rcParams['font.family'] = 'sans-serif'
+    mpl.rcParams['font.size'] = 12
+    mpl.rcParams['axes.titlesize'] = 14
+    mpl.rcParams['axes.labelsize'] = 12
+
+# 调用字体设置函数
+setup_chinese_font()
 
 # 设置页面配置
 st.set_page_config(
