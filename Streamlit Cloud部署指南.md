@@ -13,7 +13,7 @@
    git init
    git add .
    git commit -m "初始提交：城市地铁路线规划系统"
-   git remote add origin https://github.com/您的用户名/subway-planner.git
+   git remote add origin https://github.com/cutest-in-space/subway-planner
    git push -u origin main
    ```
 
