@@ -7,113 +7,46 @@ import matplotlib as mpl
 from matplotlib.patches import Circle
 import io
 from io import StringIO
-import sys  # 确保导入sys
-import heapq  # 添加heapq导入
-import random  # 为数据生成和模拟退火添加
-import math    # 为模拟退火算法添加
-import matplotlib.font_manager as fm
+import sys
+import heapq
+import random
+import math
 import os
-import requests
 from pathlib import Path
 
-# 设置pandas显示选项
+# Set pandas display options
 pd.set_option('display.unicode.ambiguous_as_wide', True)
 pd.set_option('display.unicode.east_asian_width', True)
 pd.set_option('display.width', 180)
 
-# 清除matplotlib字体缓存
-fm._rebuild()
-fm.fontManager.ttflist = []  # 清空字体列表
-# 重新扫描字体
-fm._load_fontmanager()
+# Simple matplotlib configuration
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS']
+plt.rcParams['axes.unicode_minus'] = False
+mpl.rcParams['font.size'] = 12
+mpl.rcParams['axes.titlesize'] = 14
+mpl.rcParams['axes.labelsize'] = 12
 
-# 下载并设置中文字体
-def setup_chinese_font():
-    # 创建字体目录
-    font_dir = Path('.streamlit/fonts')
-    font_dir.mkdir(parents=True, exist_ok=True)
-    
-    # 调试信息
-    st.write("当前可用字体:")
-    st.write([f.name for f in fm.fontManager.ttflist])
-    
-    # 清理matplotlib rcParams中可能存在的SimHei引用
-    if 'SimHei' in plt.rcParams.get('font.sans-serif', []):
-        plt.rcParams['font.sans-serif'] = [f for f in plt.rcParams['font.sans-serif'] if f != 'SimHei']
-        st.warning("已移除SimHei字体引用")
-    
-    # 下载思源黑体
-    font_path = font_dir / 'SourceHanSansSC-Regular.otf'
-    if not font_path.exists():
-        font_url = "https://github.com/adobe-fonts/source-han-sans/raw/release/OTF/SimplifiedChinese/SourceHanSansSC-Regular.otf"
-        try:
-            response = requests.get(font_url)
-            response.raise_for_status()
-            font_path.write_bytes(response.content)
-            st.success("思源黑体下载成功!")
-        except Exception as e:
-            st.error(f"下载字体失败: {str(e)}")
-            # 使用系统默认字体作为后备
-            return
-
-    # 添加字体文件到matplotlib
-    font_path_str = str(font_path)
-    if os.path.exists(font_path_str):
-        fm.fontManager.addfont(font_path_str)
-        # 确保不再使用SimHei
-        plt.rcParams['font.sans-serif'] = ['Source Han Sans SC', 'DejaVu Sans', 'Arial Unicode MS', 
-                                          'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', 'Noto Sans CJK JP']
-        st.success(f"字体已加载: {font_path_str}")
-        
-        # 显式定义一个标签，以强制使用并激活字体
-        fig, ax = plt.subplots(figsize=(2, 1))
-        ax.text(0.5, 0.5, '中文测试', ha='center', va='center', fontsize=12)
-        ax.axis('off')
-        st.pyplot(fig)
-        plt.close(fig)
-    else:
-        # 使用系统默认字体作为后备
-        plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 
-                                          'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', 'Noto Sans CJK JP']
-        st.warning("使用系统默认字体")
-
-    plt.rcParams['axes.unicode_minus'] = False
-    plt.rcParams['font.family'] = 'sans-serif'
-    mpl.rcParams['font.size'] = 12
-    mpl.rcParams['axes.titlesize'] = 14
-    mpl.rcParams['axes.labelsize'] = 12
-    
-    # 额外确认字体设置已应用
-    st.write("已设置的字体:", plt.rcParams['font.sans-serif'])
-    
-    # 检查并报告可能的问题
-    if 'SimHei' in plt.rcParams.get('font.sans-serif', []):
-        st.error("警告：SimHei仍在字体列表中！")
-
-# 调用字体设置函数
-setup_chinese_font()
-
-# 设置页面配置
+# Set page configuration
 st.set_page_config(
-    page_title="城市地铁路线规划系统",
+    page_title="Urban Subway Planning System",
     page_icon="🚇",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 添加模拟退火算法代码
-# 全局变量：地图尺寸、移动成本、建站成本、起终点坐标及转向代价
+# Global variables for the simulated annealing algorithm
 sa_rows = sa_cols = 0
 sa_move_cost = []
 sa_build_cost = []
 sa_start_x = sa_start_y = sa_end_x = sa_end_y = 0
 sa_turn_cost = 0
 
-# 解的表示：路径（连续的坐标）和每个节点是否建站的标志
+# Solution representation: path (continuous coordinates) and station build flags
 class Solution:
     def __init__(self, path, built):
-        self.path = path[:]    # 列表，每个元素为 (x, y)
-        self.built = built[:]  # 与 path 对应，True 表示该节点建站
+        self.path = path[:]    # List of (x, y) coordinates
+        self.built = built[:]  # Corresponds to path, True means build a station at this node
 
 def calc_cost(sol):
     """成本函数：计算一条解的总成本"""
@@ -486,7 +419,7 @@ if 'sa_iterations' not in st.session_state:
     st.session_state.sa_iterations = 10000
 
 # 页面配置
-st.set_page_config(layout="wide", page_title="城市地铁路线规划系统", page_icon="🚇")
+st.set_page_config(layout="wide", page_title="Urban Subway Planning System", page_icon="🚇")
 
 # 添加CSS样式
 st.markdown("""
@@ -529,13 +462,13 @@ st.markdown("""
 # 页面标题和制作者信息
 col1, col2 = st.columns([3, 1])
 with col1:
-    st.title("🚇 城市地铁路线规划系统")
+    st.title("🚇 Urban Subway Planning System")
 with col2:
     st.markdown(
         """
         <div style="text-align: right; padding-top: 20px;">
             <span style="color: #6B7280; font-size: 1rem;">
-                制作者: <span style="color: #1E3A8A; font-weight: bold;">陆冠宇小组</span>
+                Created by: <span style="color: #1E3A8A; font-weight: bold;">Lu Guanyu's Group</span>
             </span>
         </div>
         """, 
@@ -548,59 +481,59 @@ left_col, right_col = st.columns([1, 2])
 
 with left_col:
     # 创建参数输入区
-    with st.expander("🌐 基础参数设置", expanded=True):
-        n = st.number_input("网格行数 (n)", min_value=2, value=10)
-        m = st.number_input("网格列数 (m)", min_value=2, value=10)
-        stx = st.number_input("起点X", min_value=0, max_value=n-1, value=0)
-        sty = st.number_input("起点Y", min_value=0, max_value=m-1, value=0)
-        edx = st.number_input("终点X", min_value=0, max_value=n-1, value=n-1)
-        edy = st.number_input("终点Y", min_value=0, max_value=m-1, value=m-1)
-        turn_cost = st.number_input("转弯成本", min_value=0, value=100)
+    with st.expander("🌐 Basic Parameter Settings", expanded=True):
+        n = st.number_input("Grid Rows (n)", min_value=2, value=10)
+        m = st.number_input("Grid Columns (m)", min_value=2, value=10)
+        stx = st.number_input("Start X", min_value=0, max_value=n-1, value=0)
+        sty = st.number_input("Start Y", min_value=0, max_value=m-1, value=0)
+        edx = st.number_input("End X", min_value=0, max_value=n-1, value=n-1)
+        edy = st.number_input("End Y", min_value=0, max_value=m-1, value=m-1)
+        turn_cost = st.number_input("Turn Cost", min_value=0, value=100)
     
     # 算法选择
-    with st.expander("🧮 算法设置", expanded=True):
+    with st.expander("🧮 Algorithm Settings", expanded=True):
         algorithm = st.selectbox(
-            "选择算法",
-            ["Dijkstra算法", "模拟退火算法"]
+            "Choose Algorithm",
+            ["Dijkstra Algorithm", "Simulated Annealing Algorithm"]
         )
         
         # 算法参数设置
-        if algorithm == "模拟退火算法":
-            st.session_state.sa_initial_temp = st.slider("初始温度", 100.0, 2000.0, 1000.0, 100.0)
-            st.session_state.sa_cooling_rate = st.slider("冷却率", 0.8, 0.999, 0.99, 0.001)
-            st.session_state.sa_iterations = st.slider("最大迭代次数", 1000, 20000, 10000, 1000)
+        if algorithm == "Simulated Annealing Algorithm":
+            st.session_state.sa_initial_temp = st.slider("Initial Temperature", 100.0, 2000.0, 1000.0, 100.0)
+            st.session_state.sa_cooling_rate = st.slider("Cooling Rate", 0.8, 0.999, 0.99, 0.001)
+            st.session_state.sa_iterations = st.slider("Maximum Iterations", 1000, 20000, 10000, 1000)
     
     # 可视化设置
-    with st.expander("🎨 可视化设置", expanded=True):
-        grid_size = st.slider("网格大小", 5, 20, 10)
-        show_costs = st.checkbox("显示成本热力图", value=True)
-        show_grid = st.checkbox("显示网格线", value=True)
+    with st.expander("🎨 Visualization Settings", expanded=True):
+        grid_size = st.slider("Grid Size", 5, 20, 10)
+        show_costs = st.checkbox("Show Cost Heatmap", value=True)
+        show_grid = st.checkbox("Show Grid Lines", value=True)
         
         color_theme = st.selectbox(
-            "颜色主题",
-            ["蓝色主题", "绿色主题", "红色主题", "紫色主题"]
+            "Color Theme",
+            ["Blue Theme", "Green Theme", "Red Theme", "Purple Theme"]
         )
         
         # 根据选择设置颜色
-        if color_theme == "蓝色主题":
+        if color_theme == "Blue Theme":
             line_color = "#1E40AF"
             station_color = "white"
             station_edge = "#1E3A8A"
             start_color = "green"
             end_color = "red"
-        elif color_theme == "绿色主题":
+        elif color_theme == "Green Theme":
             line_color = "#047857"
             station_color = "white"
             station_edge = "#065F46"
             start_color = "blue"
             end_color = "red"
-        elif color_theme == "红色主题":
+        elif color_theme == "Red Theme":
             line_color = "#B91C1C"
             station_color = "white"
             station_edge = "#991B1B"
             start_color = "green"
             end_color = "blue"
-        else:  # 紫色主题
+        else:  # Purple Theme
             line_color = "#7E22CE"
             station_color = "white"
             station_edge = "#6B21A8"
@@ -608,30 +541,30 @@ with left_col:
             end_color = "red"
     
     # 数据生成和计算按钮
-    st.markdown("### 🚀 操作")
+    st.markdown("### 🚀 Operations")
     col1, col2 = st.columns(2)
     with col1:
-        generate_btn = st.button("生成随机数据", use_container_width=True)
+        generate_btn = st.button("Generate Random Data", use_container_width=True)
     with col2:
-        calculate_btn = st.button("计算最优路径", use_container_width=True)
+        calculate_btn = st.button("Calculate Optimal Path", use_container_width=True)
     
     # 添加算法比对按钮
-    compare_btn = st.button("比较不同算法", use_container_width=True)
+    compare_btn = st.button("Compare Different Algorithms", use_container_width=True)
 
 with right_col:
     # 显示和编辑数据
     if st.session_state.move_cost is not None:
-        tabs = st.tabs(["📊 数据编辑", "🗺️ 可视化结果", "📈 算法比对"])
+        tabs = st.tabs(["📊 Data Editor", "🗺️ Visualization Results", "📈 Algorithm Comparison"])
         
         with tabs[0]:
             col1, col2 = st.columns(2)
             with col1:
-                st.subheader("移动成本矩阵")
+                st.subheader("Move Cost Matrix")
                 # 创建带有中文列名的DataFrame
                 move_df = pd.DataFrame(
                     st.session_state.move_cost,
-                    columns=[f'列{i+1}' for i in range(m)],
-                    index=[f'行{i+1}' for i in range(n)]
+                    columns=[f'Column {i+1}' for i in range(m)],
+                    index=[f'Row {i+1}' for i in range(n)]
                 )
                 edited_move_cost = st.data_editor(
                     move_df,
@@ -642,12 +575,12 @@ with right_col:
                 st.session_state.move_cost = edited_move_cost.values
             
             with col2:
-                st.subheader("建站成本矩阵")
+                st.subheader("Build Cost Matrix")
                 # 创建带有中文列名的DataFrame
                 build_df = pd.DataFrame(
                     st.session_state.build_cost,
-                    columns=[f'列{i+1}' for i in range(m)],
-                    index=[f'行{i+1}' for i in range(n)]
+                    columns=[f'Column {i+1}' for i in range(m)],
+                    index=[f'Row {i+1}' for i in range(n)]
                 )
                 edited_build_cost = st.data_editor(
                     build_df,
@@ -668,7 +601,7 @@ with right_col:
                 # 绘制热力图显示成本
                 if show_costs:
                     im = ax.imshow(st.session_state.move_cost, cmap='YlOrRd', alpha=0.3)
-                    plt.colorbar(im, ax=ax, label='移动成本').set_label('移动成本', fontsize=12)
+                    plt.colorbar(im, ax=ax, label='Move Cost').set_label('Move Cost', fontsize=12)
                 
                 # 绘制网格
                 if show_grid:
@@ -677,13 +610,13 @@ with right_col:
                 # 设置网格大小和标签
                 ax.set_xticks(np.arange(m))
                 ax.set_yticks(np.arange(n))
-                ax.set_xticklabels([f'列{i+1}' for i in range(m)], fontsize=10)
-                ax.set_yticklabels([f'行{n-i}' for i in range(n)], fontsize=10)
+                ax.set_xticklabels([f'Column {i+1}' for i in range(m)], fontsize=10)
+                ax.set_yticklabels([f'Row {n-i}' for i in range(n)], fontsize=10)
                 
                 # 绘制路径和站点
                 path_x = [p[1] for p in st.session_state.path_points]
                 path_y = [n-1-p[0] for p in st.session_state.path_points]
-                ax.plot(path_x, path_y, '-', color=line_color, linewidth=3, zorder=2, label='地铁线路')
+                ax.plot(path_x, path_y, '-', color=line_color, linewidth=3, zorder=2, label='Subway Line')
                 
                 # 绘制站点
                 station_x = [s[1] for s in st.session_state.stations]
@@ -697,23 +630,23 @@ with right_col:
                 # 添加站点图例
                 station_marker = plt.Line2D([], [], marker='o', color=station_color, markerfacecolor=station_color,
                                           markeredgecolor=station_edge, markersize=15, linestyle='None',
-                                          label='地铁站点')
+                                          label='Subway Station')
                 
                 # 起终点标记
                 ax.scatter(sty, n-1-stx, color=start_color, s=250, marker='*', 
-                          label='起点', zorder=4)
+                          label='Start', zorder=4)
                 ax.scatter(edy, n-1-edx, color=end_color, s=250, marker='*', 
-                          label='终点', zorder=4)
+                          label='End', zorder=4)
                 
                 # 添加图例和标题
                 handles, labels = ax.get_legend_handles_labels()
                 handles.append(station_marker)
-                labels.append('地铁站点')
+                labels.append('Subway Station')
                 ax.legend(handles, labels, loc='upper right', bbox_to_anchor=(1.15, 1), fontsize=12)
                 
-                plt.title("地铁路线规划图", pad=20, fontsize=16, fontweight='bold')
-                plt.xlabel("列坐标", fontsize=12)
-                plt.ylabel("行坐标", fontsize=12)
+                plt.title("Subway Line Planning Map", pad=20, fontsize=16, fontweight='bold')
+                plt.xlabel("Column Coordinate", fontsize=12)
+                plt.ylabel("Row Coordinate", fontsize=12)
                 
                 # 调整布局
                 plt.tight_layout()
@@ -722,22 +655,22 @@ with right_col:
                 st.pyplot(fig)
                 
                 # 显示详细信息
-                st.markdown("### 📋 规划详情")
+                st.markdown("### �� Planning Details")
                 
                 # 使用自定义CSS样式的指标卡
                 metric_html = f"""
                 <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
                     <div class="metric-card">
                         <div class="metric-value">{len(st.session_state.stations)}</div>
-                        <div class="metric-label">总站点数</div>
+                        <div class="metric-label">Total Station Count</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">{len(st.session_state.path_points)}</div>
-                        <div class="metric-label">路线长度</div>
+                        <div class="metric-label">Path Length</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">{st.session_state.total_cost:,}</div>
-                        <div class="metric-label">总成本</div>
+                        <div class="metric-label">Total Cost</div>
                     </div>
                 </div>
                 """
@@ -746,37 +679,37 @@ with right_col:
         # 添加算法比对选项卡
         with tabs[2]:
             if len(st.session_state.algorithm_results) > 0:
-                st.subheader("不同算法结果比对")
+                st.subheader("Algorithm Comparison Results")
                 
                 # 创建比对表格
                 compare_data = []
                 for alg_name, result in st.session_state.algorithm_results.items():
                     compare_data.append({
-                        "算法": alg_name,
-                        "总成本": result["total_cost"],
-                        "路线长度": len(result["path_points"]),
-                        "站点数量": len(result["stations"])
+                        "Algorithm": alg_name,
+                        "Total Cost": result["total_cost"],
+                        "Path Length": len(result["path_points"]),
+                        "Station Count": len(result["stations"])
                     })
                 
                 compare_df = pd.DataFrame(compare_data)
                 st.dataframe(compare_df, use_container_width=True)
                 
                 # 创建三个横向排列的图表来比较不同指标
-                st.subheader("算法性能指标比较")
+                st.subheader("Algorithm Performance Metrics Comparison")
                 
                 # 创建三列布局
                 col1, col2, col3 = st.columns(3)
                 
-                algorithms = [data["算法"] for data in compare_data]
+                algorithms = [data["Algorithm"] for data in compare_data]
                 
                 # 1. 总成本比较图
                 with col1:
                     fig1, ax1 = plt.subplots(figsize=(4, 3))
-                    costs = [data["总成本"] for data in compare_data]
+                    costs = [data["Total Cost"] for data in compare_data]
                     
                     bars1 = ax1.bar(algorithms, costs, color='#ff9999')
-                    ax1.set_ylabel('总成本')
-                    ax1.set_title('总成本比较', fontsize=10)
+                    ax1.set_ylabel('Total Cost')
+                    ax1.set_title('Total Cost Comparison', fontsize=10)
                     # 添加数据标签
                     for bar in bars1:
                         height = bar.get_height()
@@ -794,11 +727,11 @@ with right_col:
                 # 2. 路线长度比较图
                 with col2:
                     fig2, ax2 = plt.subplots(figsize=(4, 3))
-                    path_lengths = [data["路线长度"] for data in compare_data]
+                    path_lengths = [data["Path Length"] for data in compare_data]
                     
                     bars2 = ax2.bar(algorithms, path_lengths, color='#66b3ff')
-                    ax2.set_ylabel('路线长度')
-                    ax2.set_title('路线长度比较', fontsize=10)
+                    ax2.set_ylabel('Path Length')
+                    ax2.set_title('Path Length Comparison', fontsize=10)
                     # 添加数据标签
                     for bar in bars2:
                         height = bar.get_height()
@@ -816,11 +749,11 @@ with right_col:
                 # 3. 站点数量比较图
                 with col3:
                     fig3, ax3 = plt.subplots(figsize=(4, 3))
-                    station_counts = [data["站点数量"] for data in compare_data]
+                    station_counts = [data["Station Count"] for data in compare_data]
                     
                     bars3 = ax3.bar(algorithms, station_counts, color='#99ff99')
-                    ax3.set_ylabel('站点数量')
-                    ax3.set_title('站点数量比较', fontsize=10)
+                    ax3.set_ylabel('Station Count')
+                    ax3.set_title('Station Count Comparison', fontsize=10)
                     # 添加数据标签
                     for bar in bars3:
                         height = bar.get_height()
@@ -836,7 +769,7 @@ with right_col:
                     st.pyplot(fig3)
                 
                 # 绘制不同算法的路径比较
-                st.subheader("路径可视化比较")
+                st.subheader("Path Visualization Comparison")
                 
                 fig, ax = plt.subplots(figsize=(12, 8))
                 plt.style.use('ggplot')
@@ -854,7 +787,7 @@ with right_col:
                     path_x = [p[1] for p in result["path_points"]]
                     path_y = [n-1-p[0] for p in result["path_points"]]
                     ax.plot(path_x, path_y, '-', color=colors[i % len(colors)], 
-                           linewidth=3, zorder=2, label=f'{alg_name}路线')
+                           linewidth=3, zorder=2, label=f'{alg_name} Path')
                     
                     # 绘制站点
                     station_x = [s[1] for s in result["stations"]]
@@ -867,12 +800,12 @@ with right_col:
                 
                 # 起终点标记
                 ax.scatter(sty, n-1-stx, color='gold', s=250, marker='*', 
-                          label='起点', zorder=4)
+                          label='Start', zorder=4)
                 ax.scatter(edy, n-1-edx, color='purple', s=250, marker='*', 
-                          label='终点', zorder=4)
+                          label='End', zorder=4)
                 
                 ax.legend(loc='upper right', bbox_to_anchor=(1.15, 1))
-                ax.set_title("不同算法路线比较", pad=20, fontsize=16)
+                ax.set_title("Different Algorithm Path Comparison", pad=20, fontsize=16)
                 
                 st.pyplot(fig)
 
@@ -880,7 +813,7 @@ with right_col:
 if generate_btn:
     try:
         # 显示简单加载提示
-        with st.spinner('正在生成随机数据...'):
+        with st.spinner('Generating random data...'):
             # 使用Python模块代替C++程序
             import sys
             from io import StringIO
@@ -913,7 +846,7 @@ if generate_btn:
                 ])
                 
                 # 成功提示
-                st.success('随机数据生成成功！')
+                st.success('Random data generation successful!')
             else:
                 st.error("生成的数据格式不正确")
     except Exception as e:
@@ -923,13 +856,13 @@ if generate_btn:
 if calculate_btn and st.session_state.move_cost is not None:
     try:
         # 显示简单加载提示
-        with st.spinner('正在计算最优路径...'):
+        with st.spinner('Calculating optimal path...'):
             # 构建输入数据
             move_cost_matrix = np.array(st.session_state.move_cost)
             build_cost_matrix = np.array(st.session_state.build_cost)
             
             # 根据选择的算法调用相应的Python模块
-            if algorithm == "Dijkstra算法":
+            if algorithm == "Dijkstra Algorithm":
                 # 准备输入数据
                 input_data = f"{n} {m}\n"
                 input_data += "\n".join(" ".join(map(str, row)) for row in st.session_state.move_cost) + "\n"
@@ -952,7 +885,7 @@ if calculate_btn and st.session_state.move_cost is not None:
                 
                 # 处理输出结果
                 output = redirected_output.getvalue()
-            else:  # 模拟退火算法
+            else:  # Simulated Annealing Algorithm
                 # 直接调用函数接口而不是通过stdin/stdout
                 path_points, stations, total_cost = simulated_annealing_path_planning(
                     move_cost_matrix, 
@@ -1010,7 +943,7 @@ if calculate_btn and st.session_state.move_cost is not None:
                 }
                 
                 # 成功提示
-                st.success('最优路径计算成功！')
+                st.success('Optimal path calculation successful!')
     except Exception as e:
         st.error(f"运行出错: {str(e)}")
 
@@ -1021,9 +954,9 @@ if compare_btn and st.session_state.move_cost is not None:
         st.session_state.algorithm_results = {}
         
         # 要比对的算法列表
-        algorithms_to_compare = ["Dijkstra算法", "模拟退火算法"]
+        algorithms_to_compare = ["Dijkstra Algorithm", "Simulated Annealing Algorithm"]
         
-        with st.spinner('正在比较不同算法...'):
+        with st.spinner('Comparing different algorithms...'):
             # 准备公共输入数据
             move_cost_matrix = np.array(st.session_state.move_cost)
             build_cost_matrix = np.array(st.session_state.build_cost)
@@ -1033,7 +966,7 @@ if compare_btn and st.session_state.move_cost is not None:
             input_data += f"{stx} {sty} {edx} {edy}\n{turn_cost}"
             
             for alg in algorithms_to_compare:
-                if alg == "Dijkstra算法":
+                if alg == "Dijkstra Algorithm":
                     # 重定向标准输入和输出以捕获结果
                     old_stdin = sys.stdin  # 保存原始标准输入
                     old_stdout = sys.stdout  # 保存原始标准输出
@@ -1050,7 +983,7 @@ if compare_btn and st.session_state.move_cost is not None:
                     
                     # 处理输出结果
                     output = redirected_output.getvalue()
-                else:  # 模拟退火算法
+                else:  # Simulated Annealing Algorithm
                     # 直接调用函数接口
                     path_points, stations, total_cost = simulated_annealing_path_planning(
                         move_cost_matrix, 
@@ -1101,9 +1034,9 @@ if compare_btn and st.session_state.move_cost is not None:
                     }
             
             if len(st.session_state.algorithm_results) > 0:
-                st.success(f'成功比较了 {len(st.session_state.algorithm_results)} 种算法！请查看"算法比对"选项卡。')
+                st.success(f'Successfully compared {len(st.session_state.algorithm_results)} algorithms! Please check "Algorithm Comparison" tab.')
             else:
-                st.error("算法比对失败，未能获取有效结果。")
+                st.error("Algorithm comparison failed, no valid results obtained.")
     except Exception as e:
         st.error(f"运行出错: {str(e)}")
 
@@ -1112,7 +1045,7 @@ st.markdown("---")
 st.markdown(
     """
     <div style="text-align: center; color: #6B7280; padding: 10px 0;">
-        城市地铁路线规划系统 by陆冠宇小组
+        Urban Subway Planning System by Lu Guanyu's Group
     </div>
     """, 
     unsafe_allow_html=True

@@ -7,13 +7,18 @@ import matplotlib as mpl
 from matplotlib.patches import Circle
 import io
 from io import StringIO
-import sys  # 确保导入sys
-import heapq  # 添加heapq导入
-import random  # 为数据生成和模拟退火添加
-import math    # 为模拟退火算法添加
+import sys
+import heapq
+import random
+import math
 
-# 添加模拟退火算法代码
-# 全局变量：地图尺寸、移动成本、建站成本、起终点坐标及转向代价
+# Set up basic font and display settings
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS']
+plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['font.family'] = 'sans-serif'
+
+# Add simulated annealing algorithm code
+# Global variables: map size, movement cost, station building cost, start/end coordinates and turn cost
 sa_rows = sa_cols = 0
 sa_move_cost = []
 sa_build_cost = []
@@ -369,10 +374,9 @@ def planner_main():  # 重命名为planner_main以保持与原来代码的一致
                 print(f"({x}, {y})")
                 ansf[x][y] = 2
 
-# 设置中文字体支持 - 不使用SimHei，使用更通用的字体
-# plt.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
-plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei']  # 使用通用字体
-plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
+# Set Chinese font support - now using English instead
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei']
+plt.rcParams['axes.unicode_minus'] = False
 
 # 初始化session_state变量
 if 'move_cost' not in st.session_state:

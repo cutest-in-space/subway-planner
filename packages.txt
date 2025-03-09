@@ -1,8 +1,2 @@
 fonts-liberation
-fonts-noto-cjk
-fonts-dejavu
-fonts-noto-cjk-extra
-fonts-wqy-microhei
-fonts-wqy-zenhei
-fonts-arphic-ukai
-fonts-arphic-uming 
+fonts-dejavu 
