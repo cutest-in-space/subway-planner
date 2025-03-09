@@ -1,2 +1,6 @@
 fonts-noto-cjk
-fonts-noto-cjk-extra 
+fonts-noto-cjk-extra
+fonts-wqy-microhei
+fonts-wqy-zenhei
+fonts-arphic-ukai
+fonts-arphic-uming 

@@ -12,9 +12,18 @@ import heapq  # 添加heapq导入
 import random  # 为数据生成和模拟退火添加
 import math    # 为模拟退火算法添加
 
-# 设置中文字体
-plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']  # 添加备选字体
-plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
+# 设置pandas显示选项
+pd.set_option('display.unicode.ambiguous_as_wide', True)
+pd.set_option('display.unicode.east_asian_width', True)
+pd.set_option('display.width', 180)
+
+# 配置matplotlib中文显示
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Noto Sans CJK JP', 'Microsoft YaHei', 'DejaVu Sans', 'Arial Unicode MS']
+plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['font.family'] = 'sans-serif'
+mpl.rcParams['font.size'] = 12
+mpl.rcParams['axes.titlesize'] = 14
+mpl.rcParams['axes.labelsize'] = 12
 
 # 设置页面配置
 st.set_page_config(
@@ -549,14 +558,34 @@ with right_col:
             col1, col2 = st.columns(2)
             with col1:
                 st.subheader("移动成本矩阵")
-                move_df = pd.DataFrame(st.session_state.move_cost)
-                edited_move_cost = st.data_editor(move_df, use_container_width=True)
+                # 创建带有中文列名的DataFrame
+                move_df = pd.DataFrame(
+                    st.session_state.move_cost,
+                    columns=[f'列{i+1}' for i in range(m)],
+                    index=[f'行{i+1}' for i in range(n)]
+                )
+                edited_move_cost = st.data_editor(
+                    move_df,
+                    use_container_width=True,
+                    num_rows="fixed",
+                    key="move_cost_editor"
+                )
                 st.session_state.move_cost = edited_move_cost.values
             
             with col2:
                 st.subheader("建站成本矩阵")
-                build_df = pd.DataFrame(st.session_state.build_cost)
-                edited_build_cost = st.data_editor(build_df, use_container_width=True)
+                # 创建带有中文列名的DataFrame
+                build_df = pd.DataFrame(
+                    st.session_state.build_cost,
+                    columns=[f'列{i+1}' for i in range(m)],
+                    index=[f'行{i+1}' for i in range(n)]
+                )
+                edited_build_cost = st.data_editor(
+                    build_df,
+                    use_container_width=True,
+                    num_rows="fixed",
+                    key="build_cost_editor"
+                )
                 st.session_state.build_cost = edited_build_cost.values
         
         with tabs[1]:
@@ -570,15 +599,17 @@ with right_col:
                 # 绘制热力图显示成本
                 if show_costs:
                     im = ax.imshow(st.session_state.move_cost, cmap='YlOrRd', alpha=0.3)
-                    plt.colorbar(im, ax=ax, label='移动成本')
+                    plt.colorbar(im, ax=ax, label='移动成本').set_label('移动成本', fontsize=12)
                 
                 # 绘制网格
                 if show_grid:
                     ax.grid(True, color='gray', linestyle='-', linewidth=0.5, alpha=0.3)
                 
-                # 设置网格大小
-                ax.set_xticks(np.arange(-0.5, m, 1), minor=True)
-                ax.set_yticks(np.arange(-0.5, n, 1), minor=True)
+                # 设置网格大小和标签
+                ax.set_xticks(np.arange(m))
+                ax.set_yticks(np.arange(n))
+                ax.set_xticklabels([f'列{i+1}' for i in range(m)], fontsize=10)
+                ax.set_yticklabels([f'行{n-i}' for i in range(n)], fontsize=10)
                 
                 # 绘制路径和站点
                 path_x = [p[1] for p in st.session_state.path_points]
@@ -591,7 +622,6 @@ with right_col:
                 
                 # 使用更美观的站点标记
                 for x, y in zip(station_x, station_y):
-                    # 绘制站点底色
                     circle = Circle((x, y), 0.3, color=station_color, ec=station_edge, lw=2, zorder=3)
                     ax.add_patch(circle)
                 
@@ -610,9 +640,14 @@ with right_col:
                 handles, labels = ax.get_legend_handles_labels()
                 handles.append(station_marker)
                 labels.append('地铁站点')
-                ax.legend(handles, labels, loc='upper right', bbox_to_anchor=(1.15, 1))
+                ax.legend(handles, labels, loc='upper right', bbox_to_anchor=(1.15, 1), fontsize=12)
                 
-                ax.set_title("地铁路线规划图", pad=20, fontsize=16)
+                plt.title("地铁路线规划图", pad=20, fontsize=16, fontweight='bold')
+                plt.xlabel("列坐标", fontsize=12)
+                plt.ylabel("行坐标", fontsize=12)
+                
+                # 调整布局
+                plt.tight_layout()
                 
                 # 显示图形
                 st.pyplot(fig)
