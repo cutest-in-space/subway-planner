@@ -1,0 +1,5 @@
+ffmpeg
+libsm6
+libxext6
+build-essential
+python3-dev 
