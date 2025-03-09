@@ -60,9 +60,10 @@ if not any(font in available_fonts for font in ['SimHei', 'Microsoft YaHei', 'We
             "路径可视化比较": "Path Visualization Comparison"
         }
         return translations.get(text, text)
-        else:
+else:
     def safe_text(text):
         return text
+
 # 初始化session_state变量
 if 'move_cost' not in st.session_state:
     st.session_state.move_cost = None
