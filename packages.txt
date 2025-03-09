@@ -1,4 +1,7 @@
+fonts-liberation
 fonts-noto-cjk
+fonts-dejavu
+ttf-dejavu
 fonts-noto-cjk-extra
 fonts-wqy-microhei
 fonts-wqy-zenhei

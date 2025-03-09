@@ -21,7 +21,13 @@ pd.set_option('display.unicode.ambiguous_as_wide', True)
 pd.set_option('display.unicode.east_asian_width', True)
 pd.set_option('display.width', 180)
 
-# 配置matplotlib中文显示
+# 清除matplotlib字体缓存
+fm._rebuild()
+fm.fontManager.ttflist = []  # 清空字体列表
+# 重新扫描字体
+fm._load_fontmanager()
+
+# 下载并设置中文字体
 def setup_chinese_font():
     # 创建字体目录
     font_dir = Path('.streamlit/fonts')
@@ -39,6 +45,7 @@ def setup_chinese_font():
             response = requests.get(font_url)
             response.raise_for_status()
             font_path.write_bytes(response.content)
+            st.success("思源黑体下载成功!")
         except Exception as e:
             st.error(f"下载字体失败: {str(e)}")
             # 使用系统默认字体作为后备
@@ -48,16 +55,22 @@ def setup_chinese_font():
     font_path_str = str(font_path)
     if os.path.exists(font_path_str):
         fm.fontManager.addfont(font_path_str)
+        # 确保不再使用SimHei
         plt.rcParams['font.sans-serif'] = ['Source Han Sans SC', 'DejaVu Sans', 'Arial Unicode MS']
+        st.success(f"字体已加载: {font_path_str}")
     else:
         # 使用系统默认字体作为后备
         plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS']
+        st.warning("使用系统默认字体")
 
     plt.rcParams['axes.unicode_minus'] = False
     plt.rcParams['font.family'] = 'sans-serif'
     mpl.rcParams['font.size'] = 12
     mpl.rcParams['axes.titlesize'] = 14
     mpl.rcParams['axes.labelsize'] = 12
+    
+    # 额外确认字体设置已应用
+    st.write("已设置的字体:", plt.rcParams['font.sans-serif'])
 
 # 调用字体设置函数
 setup_chinese_font()
