@@ -5,11 +5,64 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.patches import Circle
 import random
+import matplotlib.font_manager as fm
 
 # 设置中文字体支持
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
+try:
+    # 尝试使用系统自带的中文字体
+    plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS', 
+                                      'Microsoft YaHei', 'WenQuanYi Micro Hei']
+except:
+    # 如果没有合适的中文字体，使用默认字体
+    plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
+    
 plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 
+# 检查可用的字体
+available_fonts = [f.name for f in fm.fontManager.ttflist]
+if not any(font in available_fonts for font in ['SimHei', 'Microsoft YaHei', 'WenQuanYi Micro Hei']):
+    # 如果没有中文字体，将所有中文标题改为英文
+    def safe_text(text):
+        # 将中文标题转换为英文
+        translations = {
+            "城市地铁路线规划系统": "Urban Subway Route Planning System",
+            "制作者": "Created by",
+            "基础参数设置": "Basic Parameters",
+            "网格行数": "Grid Rows",
+            "网格列数": "Grid Columns",
+            "起点": "Start",
+            "终点": "End",
+            "转弯成本": "Turn Cost",
+            "算法设置": "Algorithm Settings",
+            "选择算法": "Select Algorithm",
+            "可视化设置": "Visualization Settings",
+            "显示成本热力图": "Show Cost Heatmap",
+            "显示网格线": "Show Grid Lines",
+            "颜色主题": "Color Theme",
+            "生成随机数据": "Generate Random Data",
+            "计算最优路径": "Calculate Optimal Path",
+            "比较不同算法": "Compare Algorithms",
+            "数据编辑": "Data Editor",
+            "可视化结果": "Visualization",
+            "算法比对": "Algorithm Comparison",
+            "移动成本矩阵": "Movement Cost Matrix",
+            "建站成本矩阵": "Station Cost Matrix",
+            "地铁路线规划图": "Subway Route Planning Map",
+            "规划详情": "Planning Details",
+            "总站点数": "Total Stations",
+            "路线长度": "Route Length",
+            "总成本": "Total Cost",
+            "不同算法结果比对": "Algorithm Results Comparison",
+            "算法性能指标比较": "Algorithm Performance Comparison",
+            "总成本比较": "Total Cost Comparison",
+            "路线长度比较": "Route Length Comparison",
+            "站点数量比较": "Station Count Comparison",
+            "路径可视化比较": "Path Visualization Comparison"
+        }
+        return translations.get(text, text)
+        else:
+    def safe_text(text):
+        return text
 # 初始化session_state变量
 if 'move_cost' not in st.session_state:
     st.session_state.move_cost = None
