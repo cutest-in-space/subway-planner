@@ -37,6 +37,11 @@ def setup_chinese_font():
     st.write("当前可用字体:")
     st.write([f.name for f in fm.fontManager.ttflist])
     
+    # 清理matplotlib rcParams中可能存在的SimHei引用
+    if 'SimHei' in plt.rcParams.get('font.sans-serif', []):
+        plt.rcParams['font.sans-serif'] = [f for f in plt.rcParams['font.sans-serif'] if f != 'SimHei']
+        st.warning("已移除SimHei字体引用")
+    
     # 下载思源黑体
     font_path = font_dir / 'SourceHanSansSC-Regular.otf'
     if not font_path.exists():
@@ -56,11 +61,20 @@ def setup_chinese_font():
     if os.path.exists(font_path_str):
         fm.fontManager.addfont(font_path_str)
         # 确保不再使用SimHei
-        plt.rcParams['font.sans-serif'] = ['Source Han Sans SC', 'DejaVu Sans', 'Arial Unicode MS']
+        plt.rcParams['font.sans-serif'] = ['Source Han Sans SC', 'DejaVu Sans', 'Arial Unicode MS', 
+                                          'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', 'Noto Sans CJK JP']
         st.success(f"字体已加载: {font_path_str}")
+        
+        # 显式定义一个标签，以强制使用并激活字体
+        fig, ax = plt.subplots(figsize=(2, 1))
+        ax.text(0.5, 0.5, '中文测试', ha='center', va='center', fontsize=12)
+        ax.axis('off')
+        st.pyplot(fig)
+        plt.close(fig)
     else:
         # 使用系统默认字体作为后备
-        plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS']
+        plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 
+                                          'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', 'Noto Sans CJK JP']
         st.warning("使用系统默认字体")
 
     plt.rcParams['axes.unicode_minus'] = False
@@ -71,6 +85,10 @@ def setup_chinese_font():
     
     # 额外确认字体设置已应用
     st.write("已设置的字体:", plt.rcParams['font.sans-serif'])
+    
+    # 检查并报告可能的问题
+    if 'SimHei' in plt.rcParams.get('font.sans-serif', []):
+        st.error("警告：SimHei仍在字体列表中！")
 
 # 调用字体设置函数
 setup_chinese_font()
@@ -440,8 +458,9 @@ def planner_main():  # 重命名为planner_main以保持与原来代码的一致
                 print(f"({x}, {y})")
                 ansf[x][y] = 2
 
-# 设置中文字体支持
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
+# 设置中文字体支持 - 不使用SimHei，使用更通用的字体
+# plt.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
+# 已在前面的setup_chinese_font函数中设置字体
 plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 
 # 初始化session_state变量

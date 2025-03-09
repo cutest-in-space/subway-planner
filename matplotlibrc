@@ -1,3 +1,6 @@
 font.family: sans-serif
-font.sans-serif: DejaVu Sans, Arial Unicode MS, Noto Sans CJK JP, WenQuanYi Micro Hei, WenQuanYi Zen Hei
-axes.unicode_minus: False 
+font.sans-serif: DejaVu Sans, Arial Unicode MS, Noto Sans CJK JP, WenQuanYi Micro Hei, WenQuanYi Zen Hei, Noto Sans SC, Source Sans 3
+axes.unicode_minus: False
+
+# 禁用查找SimHei字体
+font.family.skip_list: SimHei 

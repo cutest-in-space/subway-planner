@@ -369,8 +369,9 @@ def planner_main():  # 重命名为planner_main以保持与原来代码的一致
                 print(f"({x}, {y})")
                 ansf[x][y] = 2
 
-# 设置中文字体支持
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
+# 设置中文字体支持 - 不使用SimHei，使用更通用的字体
+# plt.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial Unicode MS', 'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei']  # 使用通用字体
 plt.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 
 # 初始化session_state变量
